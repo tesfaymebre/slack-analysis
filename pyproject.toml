@@ -5,8 +5,17 @@ profile = "black"
 addopts = """
 --cov-report term-missing \
 --cov src -ra"""
+testpaths = ["tests"]
 
 [tool.coverage.report]
 fail_under = 0
 show_missing = true
 exclude_lines = ["pragma: no cover", "raise NotImplementedError"]
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-private = true
+fail-under = 50
+verbose = 1

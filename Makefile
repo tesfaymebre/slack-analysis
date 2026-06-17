@@ -10,19 +10,19 @@ conda:
 	pip install -r requirements.txt
 
 install:
-	poetry install
+	pip install -r requirements.txt
 
 lint:
-	poetry run pylint --rcfile=.pylintrc src
-	poetry run black --check src
-	poetry run bandit -r src
-	poetry run mypy src
-	poetry run flake8 src
+	flake8 src/ --config=.flake8
 
+lint-report:
+	flake8 src/ --config=.flake8 --count --statistics
 
-run:
-	poetry run python3 main.py
+docstrings:
+	interrogate src/ -v
 
 test:
-	poetry run pytest tests
+	pytest tests/ --cov=src --cov-report=term-missing -v
+
+ci: lint docstrings test
 
