@@ -9,13 +9,31 @@ from nltk.tokenize import word_tokenize
 
 from src.models.preprocessing import clean_text
 
-STOPWORDS = set(stopwords.words('english'))
+_NLTK_READY = False
+_STOPWORDS: set[str] | None = None
+
+
+def _ensure_nltk_data() -> set[str]:
+    """Download NLTK corpora on first use so imports work in fresh environments."""
+    global _NLTK_READY, _STOPWORDS
+    if _NLTK_READY and _STOPWORDS is not None:
+        return _STOPWORDS
+
+    import nltk
+
+    for resource in ('stopwords', 'punkt', 'punkt_tab'):
+        nltk.download(resource, quiet=True)
+
+    _STOPWORDS = set(stopwords.words('english'))
+    _NLTK_READY = True
+    return _STOPWORDS
 
 
 def tokenize_for_topics(text):
     """Tokenize cleaned text for LDA."""
+    stopword_set = _ensure_nltk_data()
     tokens = word_tokenize(clean_text(text))
-    return [token for token in tokens if token not in STOPWORDS and len(token) > 2]
+    return [token for token in tokens if token not in stopword_set and len(token) > 2]
 
 
 def build_channel_corpus(df, channel):
