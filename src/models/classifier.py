@@ -1,6 +1,7 @@
 """Message classification for Slack text."""
 
 import re
+from typing import Any, cast
 
 import mlflow
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -39,21 +40,13 @@ def weak_label_message(row):
     technical = is_technical(text)
 
     if '?' in text or clean.startswith(QUESTION_STARTS):
-        prefix = 'Question'
-    elif row.get('replies_to') or row.get('parent_user_id'):
-        prefix = 'Answer'
-    elif len(clean.split()) <= 3:
-        prefix = 'Other'
-    else:
-        prefix = 'Comment'
-
-    if prefix == 'Answer':
-        return 'Answer'
-    if prefix == 'Other':
-        return 'Other'
-    if prefix == 'Question':
         return 'Question-Technical' if technical else 'Question-Non-technical'
-    return 'Comment-Technical' if technical else 'Comment-Non-Technical'
+    elif row.get('replies_to') or row.get('parent_user_id'):
+        return 'Answer'
+    elif len(clean.split()) <= 3:
+        return 'Other'
+    else:
+        return 'Comment-Technical' if technical else 'Comment-Non-Technical'
 
 
 def build_labeled_frame(df):
@@ -63,12 +56,15 @@ def build_labeled_frame(df):
     return labeled
 
 
-def train_message_classifier(df, experiment_name='slack-message-classifier'):
+def train_message_classifier(
+    df, experiment_name: str = 'slack-message-classifier'
+) -> tuple[Pipeline, Any, dict[str, Any]]:
     """
     Train a TF-IDF + logistic regression classifier and log with MLflow.
 
     Returns:
-        Tuple of (pipeline, labeled dataframe, metrics dict).
+        Tuple of (pipeline, labeled dataframe, metrics dict with
+        ``accuracy`` and ``report`` keys).
     """
     labeled = build_labeled_frame(df)
     if labeled['label'].nunique() < 2:
@@ -88,16 +84,20 @@ def train_message_classifier(df, experiment_name='slack-message-classifier'):
     ])
     pipeline.fit(x_train, y_train)
     predictions = pipeline.predict(x_test)
-    report = classification_report(y_test, predictions, output_dict=True)
+    report = cast(
+        dict[str, Any],
+        classification_report(y_test, predictions, output_dict=True),
+    )
+    accuracy = float(report['accuracy'])
 
     mlflow.set_experiment(experiment_name)
     with mlflow.start_run(run_name='message_classifier'):
         mlflow.log_param('train_size', len(x_train))
         mlflow.log_param('num_classes', labeled['label'].nunique())
-        mlflow.log_metric('accuracy', report['accuracy'])
+        mlflow.log_metric('accuracy', accuracy)
         mlflow.sklearn.log_model(pipeline, 'message_classifier')
 
-    return pipeline, labeled, report
+    return pipeline, labeled, {'accuracy': accuracy, 'report': report}
 
 
 def predict_message_labels(pipeline, df):
