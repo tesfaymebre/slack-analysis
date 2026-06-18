@@ -1,3 +1,9 @@
+[tool.pyright]
+include = ["src", "tests"]
+extraPaths = ["."]
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+
 [tool.isort]
 profile = "black"
 
