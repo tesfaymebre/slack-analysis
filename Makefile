@@ -36,5 +36,19 @@ db-load:
 db-load-fast:
 	python -m src.db.cli --data-path data/anonymized --skip-topics
 
+dashboard:
+	PYTHONPATH=. streamlit run dashboard/Home.py
+
+api:
+	uvicorn src.api.main:app --reload --port 8000
+
+frontend-install:
+	cd frontend && npm install
+
+frontend:
+	cd frontend && npm run dev
+
 ci: lint docstrings test
 
+.PHONY: init venv conda install lint lint-report docstrings test \
+	db-up db-down db-load db-load-fast dashboard api frontend-install frontend ci
