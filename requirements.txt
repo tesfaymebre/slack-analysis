@@ -13,3 +13,6 @@ pytest-cov==4.1.0
 interrogate==1.7.0
 black==24.2.0
 pre-commit==3.6.0
+pymongo==4.6.1
+psycopg2-binary==2.9.9
+mongomock==4.1.2
