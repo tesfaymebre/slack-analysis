@@ -16,3 +16,8 @@ pre-commit==3.6.0
 pymongo==4.6.1
 psycopg2-binary==2.9.9
 mongomock==4.1.2
+streamlit==1.32.0
+altair==5.5.0
+fastapi==0.110.0
+uvicorn==0.27.1
+httpx==0.27.0
