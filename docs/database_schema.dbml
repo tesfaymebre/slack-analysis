@@ -1,0 +1,97 @@
+// Task 3 feature-store schema for dbdiagram.io
+// Paste this file at https://dbdiagram.io
+
+Table user_activity_features {
+  id serial [pk]
+  workspace_id varchar [not null]
+  user_id varchar [not null]
+  user_name varchar
+  message_count int
+  reply_count int
+  mention_count int
+  reactions_received int
+  loaded_at timestamptz
+
+  indexes {
+    (workspace_id, user_id) [unique]
+  }
+}
+
+Table channel_activity_features {
+  id serial [pk]
+  workspace_id varchar [not null]
+  channel varchar [not null]
+  message_count int
+  reply_total int
+  reaction_total int
+  engagement_total int
+  reply_within_5min_fraction float
+  loaded_at timestamptz
+
+  indexes {
+    (workspace_id, channel) [unique]
+  }
+}
+
+Table message_features {
+  id serial [pk]
+  workspace_id varchar [not null]
+  message_ts varchar [not null]
+  msg_id varchar
+  channel varchar [not null]
+  user_id varchar
+  weak_label varchar
+  sentiment_score float
+  days_since_start int
+  reply_count int
+  reaction_count int
+  loaded_at timestamptz
+
+  indexes {
+    (workspace_id, channel, message_ts) [unique]
+  }
+}
+
+Table channel_topic_features {
+  id serial [pk]
+  workspace_id varchar [not null]
+  channel varchar [not null]
+  topic_id int [not null]
+  top_words text
+  loaded_at timestamptz
+
+  indexes {
+    (workspace_id, channel, topic_id) [unique]
+  }
+}
+
+Table daily_sentiment_features {
+  id serial [pk]
+  workspace_id varchar [not null]
+  days_since_start int [not null]
+  sentiment float
+  message_count int
+  loaded_at timestamptz
+
+  indexes {
+    (workspace_id, days_since_start) [unique]
+  }
+}
+
+Table time_gap_features {
+  id serial [pk]
+  workspace_id varchar [not null]
+  event_type varchar [not null]
+  median_gap_seconds float
+  mean_gap_seconds float
+  p95_gap_seconds float
+  sample_size int
+  loaded_at timestamptz
+
+  indexes {
+    (workspace_id, event_type) [unique]
+  }
+}
+
+Ref: message_features.channel > channel_activity_features.channel
+Ref: channel_topic_features.channel > channel_activity_features.channel

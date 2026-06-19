@@ -24,5 +24,17 @@ docstrings:
 test:
 	pytest tests/ --cov=src --cov-report=term-missing -v
 
+db-up:
+	docker compose up -d
+
+db-down:
+	docker compose down
+
+db-load:
+	python -m src.db.cli --data-path data/anonymized
+
+db-load-fast:
+	python -m src.db.cli --data-path data/anonymized --skip-topics
+
 ci: lint docstrings test
 
