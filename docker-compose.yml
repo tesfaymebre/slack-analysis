@@ -1,5 +1,6 @@
-# Local databases for Task 3.
-# Start with: docker compose up -d
+# Local databases + optional app containers.
+# Databases only:  docker compose up -d
+# Full stack:      docker compose --profile app up -d
 services:
   mongo:
     image: mongo:7
@@ -15,9 +16,39 @@ services:
       POSTGRES_PASSWORD: slack
       POSTGRES_DB: slack_features
     ports:
-      - "5433:5432"  # host 5433 — 5432 is often taken by a local Postgres install on macOS
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  dashboard:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      POSTGRES_DSN: postgresql://slack:slack@postgres:5432/slack_features
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: slack_analysis
+    depends_on:
+      - postgres
+      - mongo
+
+  api:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_DSN: postgresql://slack:slack@postgres:5432/slack_features
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: slack_analysis
+    depends_on:
+      - postgres
+      - mongo
 
 volumes:
   mongo_data:
