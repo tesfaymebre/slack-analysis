@@ -48,7 +48,29 @@ frontend-install:
 frontend:
 	cd frontend && npm run dev
 
+docker-build:
+	docker build -t slack-analysis:local .
+
+docker-run:
+	docker run --rm -p 8501:8501 \
+		-e POSTGRES_DSN=postgresql://slack:slack@host.docker.internal:5433/slack_features \
+		-e MONGO_URI=mongodb://host.docker.internal:27017 \
+		slack-analysis:local
+
+stack-up:
+	docker compose --profile app up -d --build
+
+stack-down:
+	docker compose --profile app down
+
+terraform-init:
+	cd terraform && terraform init
+
+terraform-plan:
+	cd terraform && terraform plan
+
 ci: lint docstrings test
 
 .PHONY: init venv conda install lint lint-report docstrings test \
-	db-up db-down db-load db-load-fast dashboard api frontend-install frontend ci
+	db-up db-down db-load db-load-fast dashboard api frontend-install frontend \
+	docker-build docker-run stack-up stack-down terraform-init terraform-plan ci

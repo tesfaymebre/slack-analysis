@@ -1,0 +1,4 @@
+aws_region           = "us-east-1"
+project_name         = "slack-analysis"
+environment          = "dev"
+artifact_bucket_name = "your-unique-slack-analysis-artifacts-12345"
